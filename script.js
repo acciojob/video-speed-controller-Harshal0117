@@ -9,13 +9,11 @@ document.addEventListener("DOMContentLoaded", function () {
   const progressFilled = document.querySelector(".progress__filled");
 
   function togglePlay() {
-    if (video.paused) {
-      video.play();
-      playButton.textContent = "❚ ❚";
-    } else {
-      video.pause();
-      playButton.textContent = "►";
-    }
+    video[video.paused ? "play" : "pause"]();
+  }
+
+  function updateButton() {
+    playButton.textContent = video.paused ? "►" : "❚ ❚";
   }
 
   function updateProgress() {
@@ -23,7 +21,7 @@ document.addEventListener("DOMContentLoaded", function () {
     progressFilled.style.width = `${percent}%`;
   }
 
-  function setProgress(event) {
+  function scrub(event) {
     const newTime = (event.offsetX / progress.offsetWidth) * video.duration;
     video.currentTime = newTime;
   }
@@ -44,12 +42,24 @@ document.addEventListener("DOMContentLoaded", function () {
     video.currentTime = Math.min(video.duration, video.currentTime + 25);
   }
 
+  // Event Listeners
   video.addEventListener("click", togglePlay);
-  playButton.addEventListener("click", togglePlay);
+  video.addEventListener("play", updateButton);
+  video.addEventListener("pause", updateButton);
   video.addEventListener("timeupdate", updateProgress);
+  playButton.addEventListener("click", togglePlay);
   volumeControl.addEventListener("input", changeVolume);
   speedControl.addEventListener("input", changeSpeed);
   rewindButton.addEventListener("click", rewind);
   forwardButton.addEventListener("click", forward);
-  progress.addEventListener("click", setProgress);
+
+  // Allow scrubbing with mouse drag
+  let isScrubbing = false;
+  progress.addEventListener("mousedown", (e) => {
+    isScrubbing = true;
+    scrub(e);
+  });
+  progress.addEventListener("mousemove", (e) => isScrubbing && scrub(e));
+  document.addEventListener("mouseup", () => (isScrubbing = false));
 });
+
